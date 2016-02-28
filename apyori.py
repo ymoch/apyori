@@ -11,6 +11,11 @@ from collections import namedtuple
 from itertools import combinations
 
 
+__version__ = '0.1.0'
+__author__ = 'ymoch'
+__author_email__ = 'ymoch@githib.com'
+
+
 # Ignore name errors because these names are namedtuples.
 SupportRecord = namedtuple( # pylint: disable=C0103
     'SupportRecord', ('items', 'support'))

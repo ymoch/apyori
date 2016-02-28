@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 
+"""
+Setting up program for Apyori.
+"""
+
+import apyori
 import setuptools
 
 setuptools.setup(
     name='apyori',
-    version='0.1.0',
     description='Simple Apriori algorithm Implementation.',
-    author='ymoch',
-    author_email='ymoch@github.com',
+    version=apyori.__version__,
+    author=apyori.__author__,
+    author_email=apyori.__author__,
     py_modules=['apyori'],
     test_suite='nose.collector',
     tests_require=['nose', 'mock'],
