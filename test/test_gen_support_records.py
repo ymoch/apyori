@@ -1,0 +1,67 @@
+"""
+Tests for apyori.create_next_candidates.
+"""
+
+from apyori import SupportRecord
+from apyori import TransactionManager
+from apyori import gen_support_records
+from nose.tools import eq_
+from mock import Mock
+
+
+def test_gen_support_records_empty():
+    """
+    Test for gen_supports_record.
+    """
+    test_data = []
+    transaction_manager = Mock(spec=TransactionManager)
+    transaction_manager.initial_candidates.return_value = []
+    support_records_gen = gen_support_records(transaction_manager, 0.1)
+    support_records = [x for x in support_records_gen]
+    eq_(support_records, [])
+
+
+def test_gen_support_records_infinite():
+    """
+    Test for gen_supports_record with no limits.
+    """
+    transaction_manager = Mock(spec=TransactionManager)
+    transaction_manager.initial_candidates.return_value = [
+        frozenset(['A']), frozenset(['B']), frozenset(['C'])]
+    transaction_manager.calc_support.side_effect = lambda key: {
+        frozenset(['A']): 0.8,
+        frozenset(['B']): 0.6,
+        frozenset(['C']): 0.3,
+        frozenset(['A', 'B']): 0.3,
+        frozenset(['A', 'C']): 0.2,
+    }.get(key, 0.0)
+    support_records_gen = gen_support_records(transaction_manager, 0.3)
+    # Convert into frozenset to ignore orders.
+    support_records = frozenset([x for x in support_records_gen])
+    eq_(support_records, frozenset([
+        SupportRecord(frozenset(['A']), 0.8),
+        SupportRecord(frozenset(['B']), 0.6),
+        SupportRecord(frozenset(['C']), 0.3),
+        SupportRecord(frozenset(['A', 'B']), 0.3),
+    ]))
+
+def test_gen_support_records_length():
+    """
+    Test for gen_supports_record that limits the length.
+    """
+    transaction_manager = Mock(spec=TransactionManager)
+    transaction_manager.initial_candidates.return_value = [
+        frozenset(['A']), frozenset(['B']), frozenset(['C'])]
+    transaction_manager.calc_support.side_effect = lambda key: {
+        frozenset(['A']): 0.5,
+        frozenset(['B']): 0.3,
+        frozenset(['C']): 0.1,
+    }.get(key, 0.0)
+    support_records_gen = gen_support_records(transaction_manager, 0.05)
+    # Convert into frozenset to ignore orders.
+    support_records = frozenset([x for x in support_records_gen])
+    eq_(support_records, frozenset([
+        SupportRecord(frozenset(['A']), 0.5),
+        SupportRecord(frozenset(['B']), 0.3),
+        SupportRecord(frozenset(['C']), 0.1),
+    ]))
