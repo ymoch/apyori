@@ -22,7 +22,7 @@ def test_normal():
         frozenset(['A', 'B']): 0.2,
         frozenset(['A', 'C']): 0.1,
         frozenset(['B', 'C']): 0.01,
-    }.get(key)
+    }.get(key, 0.0)
 
     test_data = SupportRecord(frozenset(['A', 'B', 'C']), 0.001)
     results = frozenset(

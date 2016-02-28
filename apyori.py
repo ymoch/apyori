@@ -11,7 +11,6 @@ from collections import namedtuple
 from itertools import combinations
 
 
-
 # Ignore name errors because these names are namedtuples.
 SupportRecord = namedtuple( # pylint: disable=C0103
     'SupportRecord', ('items', 'support'))

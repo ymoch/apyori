@@ -9,11 +9,10 @@ from nose.tools import eq_
 from mock import Mock
 
 
-def test_gen_support_records_empty():
+def test_empty():
     """
     Test for gen_supports_record.
     """
-    test_data = []
     transaction_manager = Mock(spec=TransactionManager)
     transaction_manager.initial_candidates.return_value = []
     support_records_gen = gen_support_records(transaction_manager, 0.1)
@@ -21,7 +20,7 @@ def test_gen_support_records_empty():
     eq_(support_records, [])
 
 
-def test_gen_support_records_infinite():
+def test_infinite():
     """
     Test for gen_supports_record with no limits.
     """
@@ -45,7 +44,7 @@ def test_gen_support_records_infinite():
         SupportRecord(frozenset(['A', 'B']), 0.3),
     ]))
 
-def test_gen_support_records_length():
+def test_length():
     """
     Test for gen_supports_record that limits the length.
     """
