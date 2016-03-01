@@ -35,7 +35,20 @@ def test_infinite():
         frozenset(['A', 'B']): 0.3,
         frozenset(['A', 'C']): 0.2,
     }.get(key, 0.0)
-    support_records_gen = gen_support_records(transaction_manager, 0.3)
+    candidates = {
+        2: [
+            frozenset(['A', 'B']),
+            frozenset(['A', 'C']),
+            frozenset(['B', 'C'])
+        ],
+        3: [
+            frozenset(['A', 'B', 'C']),
+        ],
+    }
+    support_records_gen = gen_support_records(
+        transaction_manager, 0.3,
+        _generate_candidates_func=lambda _, length: candidates.get(length))
+
     # Convert into frozenset to ignore orders.
     support_records = frozenset([x for x in support_records_gen])
     eq_(support_records, frozenset([
@@ -59,9 +72,17 @@ def test_length():
         frozenset(['A', 'B']): 0.2,
         frozenset(['A', 'C']): 0.1,
     }.get(key, 0.0)
-    # TODO: Apply a patch to create_next_candidates.
+    candidates = {
+        2: [
+            frozenset(['A', 'B']),
+            frozenset(['A', 'C']),
+            frozenset(['B', 'C'])
+        ],
+    }
     support_records_gen = gen_support_records(
-        transaction_manager, 0.05, max_length=1)
+        transaction_manager, 0.05, max_length=1,
+        _generate_candidates_func=lambda _, length: candidates.get(length))
+
     # Convert into frozenset to ignore orders.
     support_records = frozenset([x for x in support_records_gen])
     eq_(support_records, frozenset([

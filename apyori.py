@@ -134,7 +134,11 @@ def create_next_candidates(prev_candidates, length):
     return next_candidates
 
 
-def gen_support_records(transaction_manager, min_support, max_length=None):
+def gen_support_records(
+        transaction_manager,
+        min_support,
+        max_length=None,
+        _generate_candidates_func=create_next_candidates):
     """
     Returns the supported relations.
     """
@@ -152,7 +156,7 @@ def gen_support_records(transaction_manager, min_support, max_length=None):
         length += 1
         if max_length and length > max_length:
             break
-        candidates = create_next_candidates(relations, length)
+        candidates = _generate_candidates_func(relations, length)
 
 
 def gen_ordered_statistics(transaction_manager, record):
