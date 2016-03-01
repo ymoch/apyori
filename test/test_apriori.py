@@ -17,10 +17,12 @@ def test_empty():
     Test for empty data.
     """
     transaction_manager = Mock(spec=TransactionManager)
-    def gen_support_records(*args):
+    def gen_support_records(*_):
+        """ Mock for apyori.gen_support_records. """
         return iter([])
 
-    def gen_ordered_statistics(*args):
+    def gen_ordered_statistics(*_):
+        """ Mock for apyori.gen_ordered_statistics. """
         yield OrderedStatistic(
             frozenset(['A']), frozenset(['B']), 0.1, 0.7)
 
@@ -47,11 +49,13 @@ def test_normal():
         frozenset(['A']), frozenset(['B']), 0.3, 0.5)
 
     def gen_support_records(*args):
+        """ Mock for apyori.gen_support_records. """
         eq_(args[1], min_support)
         eq_(args[2], max_length)
         yield support_record
 
-    def gen_ordered_statistics(*args):
+    def gen_ordered_statistics(*_):
+        """ Mock for apyori.gen_ordered_statistics. """
         yield ordered_statistic1
         yield ordered_statistic2
 
