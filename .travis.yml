@@ -7,10 +7,13 @@ python:
 install:
   - pip install -r dev-requirements.txt
   - pip install -e .
+  - pip install coveralls
 script:
   # Normal unit tests.
-  - ./setup.py test
+  - coverage run --source=apyori setup.py test
   # Code quality check.
   - pylint apyori.py test/*.py
+after_success:
+  - coveralls
 notifications:
   - email: false
