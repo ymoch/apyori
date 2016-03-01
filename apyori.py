@@ -146,7 +146,7 @@ def gen_support_records(
         max_length=None,
         _generate_candidates_func=create_next_candidates):
     """
-    Returns the supported relations.
+    Returns a generator of support records with given transactions.
     """
     candidates = transaction_manager.initial_candidates()
     length = 1
@@ -167,7 +167,7 @@ def gen_support_records(
 
 def gen_ordered_statistics(transaction_manager, record):
     """
-    Returns the relation stats.
+    Returns a generator of ordered statistics.
     """
     items = record.items
     combination_sets = [
@@ -192,15 +192,19 @@ def apriori(transactions, **kwargs):
     min_support = kwargs.get('min_support', 0.1)
     max_length = kwargs.get('max_length', None)
     min_confidence = kwargs.get('min_confidence', 0.0)
+    _gen_support_records = kwargs.get(
+        '_gen_support_records', gen_support_records)
+    _gen_ordered_statistics = kwargs.get(
+        '_gen_ordered_statistics', gen_ordered_statistics)
 
     # Calculate supports.
     transaction_manager = TransactionManager.create(transactions)
-    support_records = gen_support_records(
+    support_records = _gen_support_records(
         transaction_manager, min_support, max_length)
 
-    # Calculate stats.
+    # Calculate ordered stats.
     for support_record in support_records:
-        ordered_statistics = gen_ordered_statistics(
+        ordered_statistics = _gen_ordered_statistics(
             transaction_manager, support_record)
         filtered_ordered_statistics = [
             x for x in ordered_statistics if x.confidence >= min_confidence]
