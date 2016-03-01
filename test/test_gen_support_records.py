@@ -53,11 +53,14 @@ def test_length():
     transaction_manager.initial_candidates.return_value = [
         frozenset(['A']), frozenset(['B']), frozenset(['C'])]
     transaction_manager.calc_support.side_effect = lambda key: {
-        frozenset(['A']): 0.5,
-        frozenset(['B']): 0.3,
-        frozenset(['C']): 0.1,
+        frozenset(['A']): 0.7,
+        frozenset(['B']): 0.5,
+        frozenset(['C']): 0.2,
+        frozenset(['A', 'B']): 0.2,
+        frozenset(['A', 'C']): 0.1,
     }.get(key, 0.0)
-    support_records_gen = gen_support_records(transaction_manager, 0.05)
+    support_records_gen = gen_support_records(
+        transaction_manager, 0.05, max_length=1)
     # Convert into frozenset to ignore orders.
     support_records = frozenset([x for x in support_records_gen])
     eq_(support_records, frozenset([

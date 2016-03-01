@@ -77,8 +77,6 @@ class TransactionManager(object):
                 sum_indexes = sum_indexes.intersection(indexes)
 
         # Calculate the support.
-        if sum_indexes is None:
-            return 0.0
         return float(len(sum_indexes)) / self.__num_transaction
 
     def initial_candidates(self):
