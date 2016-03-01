@@ -1,0 +1,6 @@
+# Testing utilities.
+nose
+mock
+
+# Code quality utilities.
+pylint
