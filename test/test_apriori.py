@@ -40,7 +40,6 @@ def test_normal():
     """
     transaction_manager = Mock(spec=TransactionManager)
     min_support = 0.1
-    min_confidence = 0.2
     max_length = 2
     support_record = SupportRecord(frozenset(['A', 'B']), 0.5)
     ordered_statistic1 = OrderedStatistic(
@@ -59,10 +58,22 @@ def test_normal():
         yield ordered_statistic1
         yield ordered_statistic2
 
+    # Will not create any records because of confidence.
     result = list(apriori(
         transaction_manager,
         min_support=min_support,
-        min_confidence=min_confidence,
+        min_confidence=0.4,
+        max_length=max_length,
+        _gen_support_records=gen_support_records,
+        _gen_ordered_statistics=gen_ordered_statistics,
+    ))
+    eq_(result, [])
+
+    # Will create a record.
+    result = list(apriori(
+        transaction_manager,
+        min_support=min_support,
+        min_confidence=0.3,
         max_length=max_length,
         _gen_support_records=gen_support_records,
         _gen_ordered_statistics=gen_ordered_statistics,
