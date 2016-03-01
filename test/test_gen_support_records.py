@@ -59,12 +59,13 @@ def test_length():
         frozenset(['A', 'B']): 0.2,
         frozenset(['A', 'C']): 0.1,
     }.get(key, 0.0)
+    # TODO: Apply a patch to create_next_candidates.
     support_records_gen = gen_support_records(
         transaction_manager, 0.05, max_length=1)
     # Convert into frozenset to ignore orders.
     support_records = frozenset([x for x in support_records_gen])
     eq_(support_records, frozenset([
-        SupportRecord(frozenset(['A']), 0.5),
-        SupportRecord(frozenset(['B']), 0.3),
-        SupportRecord(frozenset(['C']), 0.1),
+        SupportRecord(frozenset(['A']), 0.7),
+        SupportRecord(frozenset(['B']), 0.5),
+        SupportRecord(frozenset(['C']), 0.2),
     ]))
