@@ -2,8 +2,9 @@
 Tests for apyori.create_next_candidates.
 """
 
-from apyori import create_next_candidates
 from nose.tools import eq_
+
+from apyori import create_next_candidates
 
 
 def test_2elem():

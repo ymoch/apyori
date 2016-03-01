@@ -2,11 +2,12 @@
 Tests for apyori.create_next_candidates.
 """
 
+from nose.tools import eq_
+from mock import Mock
+
 from apyori import SupportRecord
 from apyori import TransactionManager
 from apyori import gen_support_records
-from nose.tools import eq_
-from mock import Mock
 
 
 def test_empty():

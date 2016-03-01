@@ -2,8 +2,9 @@
 Tests for apyori.TransactionManager.
 """
 
-from apyori import TransactionManager
 from nose.tools import eq_
+
+from apyori import TransactionManager
 
 
 def test_empty():

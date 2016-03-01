@@ -2,12 +2,13 @@
 Tests for apyori.gen_ordered_statistics.
 """
 
+from mock import Mock
+from nose.tools import eq_
+
 from apyori import SupportRecord
 from apyori import OrderedStatistic
 from apyori import TransactionManager
 from apyori import gen_ordered_statistics
-from mock import Mock
-from nose.tools import eq_
 
 
 def test_normal():
