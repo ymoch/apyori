@@ -6,7 +6,7 @@ Implementation of Apriori algorithm.
 
 import sys
 import argparse
-
+import functools
 from collections import namedtuple
 from itertools import combinations
 
@@ -128,7 +128,7 @@ def create_next_candidates(prev_candidates, length):
         if length > 2:
             candidate_subsets = [
                 frozenset(x) for x in combinations(candidate, length - 1)]
-            is_valid = reduce(
+            is_valid = functools.reduce(
                 lambda a, b: a and b in prev_candidates, candidate_subsets)
             if not is_valid:
                 continue
