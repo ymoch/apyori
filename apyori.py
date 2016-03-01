@@ -8,6 +8,7 @@ import sys
 import argparse
 from collections import namedtuple
 from itertools import combinations
+from itertools import chain
 
 
 __version__ = '0.1.0'
@@ -249,38 +250,57 @@ def print_record_as_two_item_tsv(record, output_file):
                 record.support, ordered_stats.confidence, ordered_stats.lift))
 
 
-def main():
+def parse_args(argv):
     """
-    Main.
+    Parse commandline arguments.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-i', '--input-file', help='Input file.', metavar='path',
-        type=argparse.FileType('r'), default=sys.stdin)
+        '-v', '--version', action='version',
+        version='%(prog)s {0}'.format(__version__))
     parser.add_argument(
-        '-o', '--output-file', help='Output file.', metavar='path',
+        'input', metavar='inpath', nargs='*',
+        help='Input transaction file (default: stdin).',
+        type=argparse.FileType('r'), default=[sys.stdin])
+    parser.add_argument(
+        '-o', '--output', metavar='outpath',
+        help='Output file (default: stdout).',
         type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument(
-        '-l', '--max-length', help='Max length.', metavar='int',
+        '-l', '--max-length', metavar='int',
+        help='Max length of relations (default: infinite).',
         type=int, default=None)
     parser.add_argument(
-        '-s', '--min-support', help='Minimum support (0.0-1.0).',
-        metavar='float', type=float, default=0.15)
+        '-s', '--min-support', metavar='float',
+        help='Minimum support ratio (must be > 0, default: 0.1).',
+        type=float, default=0.1)
     parser.add_argument(
-        '-c', '--min-confidence', help='Minimum confidence (0.0-1.0).',
-        metavar='float', type=float, default=0.6)
+        '-c', '--min-confidence', metavar='float',
+        help='Minimum confidence (default: 0.5).',
+        type=float, default=0.5)
     parser.add_argument(
-        '-d', '--delimiter', help='Delimiter for input.',
-        metavar='str', type=str, default='\t')
+        '-d', '--delimiter', metavar='str',
+        help='Delimiter for items of transactions (default: tab).',
+        type=str, default='\t')
     parser.add_argument(
         '-f', '--out-format', help='Output format (default or tsv).',
         metavar='str', type=str, choices=['default', 'tsv'],
         default='default')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    if args.min_support <= 0:
+        raise ValueError('min support must be > 0')
+    return args
+
+
+def main():
+    """
+    Main.
+    """
+    args = parse_args(sys.argv[1:])
 
     transactions = [
         line.strip().split(args.delimiter)
-        for line in args.input_file]
+        for line in chain(*args.input)]
     result = apriori(
         transactions,
         max_length=args.max_length,
@@ -292,7 +312,7 @@ def main():
         'tsv': print_record_as_two_item_tsv
     }.get(args.out_format)
     for record in result:
-        output_func(record, args.output_file)
+        output_func(record, args.output)
 
 
 if __name__ == '__main__':
