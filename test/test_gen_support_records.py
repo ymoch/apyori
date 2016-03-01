@@ -17,7 +17,7 @@ def test_empty():
     transaction_manager = Mock(spec=TransactionManager)
     transaction_manager.initial_candidates.return_value = []
     support_records_gen = gen_support_records(transaction_manager, 0.1)
-    support_records = [x for x in support_records_gen]
+    support_records = list(support_records_gen)
     eq_(support_records, [])
 
 
@@ -50,7 +50,7 @@ def test_infinite():
         _generate_candidates_func=lambda _, length: candidates.get(length))
 
     # Convert into frozenset to ignore orders.
-    support_records = frozenset([x for x in support_records_gen])
+    support_records = frozenset(list(support_records_gen))
     eq_(support_records, frozenset([
         SupportRecord(frozenset(['A']), 0.8),
         SupportRecord(frozenset(['B']), 0.6),
@@ -84,7 +84,7 @@ def test_length():
         _generate_candidates_func=lambda _, length: candidates.get(length))
 
     # Convert into frozenset to ignore orders.
-    support_records = frozenset([x for x in support_records_gen])
+    support_records = frozenset(list(support_records_gen))
     eq_(support_records, frozenset([
         SupportRecord(frozenset(['A']), 0.7),
         SupportRecord(frozenset(['B']), 0.5),
