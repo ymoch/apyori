@@ -12,7 +12,7 @@ from itertools import combinations
 from itertools import chain
 
 
-__version__ = '0.1.0'
+__version__ = '0.9.0'
 __author__ = 'ymoch'
 __author_email__ = 'ymoch@githib.com'
 
