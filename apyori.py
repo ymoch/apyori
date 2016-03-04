@@ -40,21 +40,22 @@ class TransactionManager(object):
         self.__num_transaction = 0
         self.__items = []
         self.__transaction_index_map = {}
-        self.add_transactions(transactions)
 
-    def add_transactions(self, transactions):
-        """
-        Add transactions.
-
-        @param  transactions    A transaction list.
-        """
         for transaction in transactions:
-            for item in transaction:
-                if item not in self.__transaction_index_map:
-                    self.__items.append(item)
-                    self.__transaction_index_map[item] = set()
-                self.__transaction_index_map[item].add(self.__num_transaction)
-            self.__num_transaction += 1
+            self.add_transaction(transaction)
+
+    def add_transaction(self, transaction):
+        """
+        Add a transaction.
+
+        @param  transaction A transaction.
+        """
+        for item in transaction:
+            if item not in self.__transaction_index_map:
+                self.__items.append(item)
+                self.__transaction_index_map[item] = set()
+            self.__transaction_index_map[item].add(self.__num_transaction)
+        self.__num_transaction += 1
 
     def calc_support(self, items):
         """
@@ -219,7 +220,7 @@ def apriori(transactions, **kwargs):
 
 def dump_as_json(record, output_file):
     """
-    Print an Apriori algorithm result as a json value..
+    Dump an relation record as a json value.
 
     @param  record      A record.
     @param  output_file An output file.
@@ -239,24 +240,9 @@ def dump_as_json(record, output_file):
     output_file.write('\n')
 
 
-def print_record_default(record, output_file):
+def dump_as_two_item_tsv(record, output_file):
     """
-    Print an Apriori algorithm result.
-
-    @param  record      A record.
-    @param  output_file An output file.
-    """
-    for ordered_stats in record.ordered_statistics:
-        output_file.write(
-            '{{{0}}} => {{{1}}} {2:.8f} {3:.8f} {4:.8f}\n'.format(
-                ','.join(ordered_stats.items_base),
-                ','.join(ordered_stats.items_add),
-                record.support, ordered_stats.confidence, ordered_stats.lift))
-
-
-def print_record_as_two_item_tsv(record, output_file):
-    """
-    Print an Apriori algorithm result as two item TSV.
+    Dump a relation record as TSV only for 2 item relations.
 
     @param  record      A record.
     @param  output_file An output file.
@@ -266,11 +252,9 @@ def print_record_as_two_item_tsv(record, output_file):
             return
         if len(ordered_stats.items_add) != 1:
             return
-        output_file.write(
-            '{0}\t{1}\t{2:.8f}\t{3:.8f}\t{4:.8f}\n'.format(
-                [x for x in ordered_stats.items_base][0],
-                [x for x in ordered_stats.items_add][0],
-                record.support, ordered_stats.confidence, ordered_stats.lift))
+        output_file.write('{0}\t{1}\t{2:.8f}\t{3:.8f}\t{4:.8f}\n'.format(
+            list(ordered_stats.items_base)[0], list(ordered_stats.items_add)[0],
+            record.support, ordered_stats.confidence, ordered_stats.lift))
 
 
 def parse_args(argv):
@@ -279,7 +263,7 @@ def parse_args(argv):
     """
     output_funcs = {
         'json': dump_as_json,
-        'tsv': print_record_as_two_item_tsv
+        'tsv': dump_as_two_item_tsv,
     }
     default_output_func_key = 'json'
 
@@ -330,8 +314,7 @@ def main():
     args = parse_args(sys.argv[1:])
 
     transactions = [
-        line.strip().split(args.delimiter)
-        for line in chain(*args.input)]
+        line.strip().split(args.delimiter) for line in chain(*args.input)]
     result = apriori(
         transactions,
         max_length=args.max_length,
