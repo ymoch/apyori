@@ -1,5 +1,5 @@
 """
-Tests for apyori.print_record_as_json.
+Tests for apyori.dump_as_json.
 """
 
 import json
@@ -10,8 +10,8 @@ try:
 except ImportError:
     from io import StringIO
 
-from nose.tools import eq_
 from nose.tools import raises
+from nose.tools import eq_
 
 from apyori import RelationRecord
 from apyori import OrderedStatistic
