@@ -26,8 +26,8 @@ def test_normal():
     }.get(key, 0.0)
 
     test_data = SupportRecord(frozenset(['A', 'B', 'C']), 0.001)
-    results = frozenset(
-        [x for x in gen_ordered_statistics(transaction_manager, test_data)])
+    results = frozenset(list(
+        gen_ordered_statistics(transaction_manager, test_data)))
     eq_(results, frozenset([
         OrderedStatistic(
             frozenset(['A', 'B']),
