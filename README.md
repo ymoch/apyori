@@ -10,7 +10,8 @@ A simple implementation of *Apriori algorithm* by Python.
 Features
 --------
 
-- Consisted of only one file and able to be used portably.
+- Is consisted of only one file and depends on no other libraries,
+  which enable you to use Apyori portably.
 - Can be used as APIs.
 - Supports a TSV output format for 2-items relations.
 
