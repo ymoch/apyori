@@ -6,6 +6,7 @@ Implementation of Apriori algorithm.
 
 import sys
 import argparse
+import json
 from collections import namedtuple
 from itertools import combinations
 from itertools import chain
@@ -216,6 +217,28 @@ def apriori(transactions, **kwargs):
             filtered_ordered_statistics)
 
 
+def dump_as_json(record, output_file):
+    """
+    Print an Apriori algorithm result as a json value..
+
+    @param  record      A record.
+    @param  output_file An output file.
+    """
+    def default_func(value):
+        """
+        Default conversion for JSON value.
+        """
+        if isinstance(value, frozenset):
+            return sorted(value)
+        raise TypeError(repr(value) + " is not JSON serializable")
+
+    converted_record = record._replace(
+        ordered_statistics=[x._asdict() for x in record.ordered_statistics])
+    output_file.write(
+        json.dumps(converted_record._asdict(), default=default_func))
+    output_file.write('\n')
+
+
 def print_record_default(record, output_file):
     """
     Print an Apriori algorithm result.
@@ -254,6 +277,12 @@ def parse_args(argv):
     """
     Parse commandline arguments.
     """
+    output_funcs = {
+        'json': dump_as_json,
+        'tsv': print_record_as_two_item_tsv
+    }
+    default_output_func_key = 'json'
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-v', '--version', action='version',
@@ -284,11 +313,13 @@ def parse_args(argv):
         type=str, default='\t')
     parser.add_argument(
         '-f', '--out-format', help='Output format (default or tsv).',
-        metavar='str', type=str, choices=['default', 'tsv'],
-        default='default')
+        metavar='str', type=str, choices=output_funcs.keys(),
+        default=default_output_func_key)
     args = parser.parse_args(argv)
     if args.min_support <= 0:
         raise ValueError('min support must be > 0')
+
+    args.output_func = output_funcs[args.out_format]
     return args
 
 
@@ -307,12 +338,8 @@ def main():
         min_support=args.min_support,
         min_confidence=args.min_confidence)
 
-    output_func = {
-        'default': print_record_default,
-        'tsv': print_record_as_two_item_tsv
-    }.get(args.out_format)
     for record in result:
-        output_func(record, args.output)
+        args.output_func(record, args.output)
 
 
 if __name__ == '__main__':
