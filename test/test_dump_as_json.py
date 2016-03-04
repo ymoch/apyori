@@ -3,7 +3,13 @@ Tests for apyori.print_record_as_json.
 """
 
 import json
-from io import StringIO
+
+# For Python 2 compatibility.
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 from nose.tools import eq_
 from nose.tools import raises
 
