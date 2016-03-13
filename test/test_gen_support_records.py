@@ -47,7 +47,7 @@ def test_infinite():
     }
     support_records_gen = gen_support_records(
         transaction_manager, 0.3,
-        _generate_candidates_func=lambda _, length: candidates.get(length))
+        _create_next_candidates=lambda _, length: candidates.get(length))
 
     # Convert into frozenset to ignore orders.
     support_records = frozenset(list(support_records_gen))
@@ -81,7 +81,7 @@ def test_length():
     }
     support_records_gen = gen_support_records(
         transaction_manager, 0.05, max_length=1,
-        _generate_candidates_func=lambda _, length: candidates.get(length))
+        _create_next_candidates=lambda _, length: candidates.get(length))
 
     # Convert into frozenset to ignore orders.
     support_records = frozenset(list(support_records_gen))

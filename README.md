@@ -13,6 +13,7 @@ Features
 - Is consisted of only one file and depends on no other libraries,
   which enable you to use Apyori portably.
 - Can be used as APIs.
+- Supports a JSON output format.
 - Supports a TSV output format for 2-items relations.
 
 
