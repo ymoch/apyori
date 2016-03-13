@@ -14,20 +14,15 @@ from itertools import combinations
 from itertools import chain
 
 
+# Meta informations.
 __version__ = '0.9.1'
 __author__ = 'ymoch'
 __author_email__ = 'ymoch@github.com'
 
 
-# Ignore name errors because these names are namedtuples.
-SupportRecord = namedtuple( # pylint: disable=C0103
-    'SupportRecord', ('items', 'support'))
-RelationRecord = namedtuple( # pylint: disable=C0103
-    'RelationRecord', SupportRecord._fields + ('ordered_statistics',))
-OrderedStatistic = namedtuple( # pylint: disable=C0103
-    'OrderedStatistic', ('items_base', 'items_add', 'confidence', 'lift',))
-
-
+################################################################################
+# Data structures.
+################################################################################
 class TransactionManager(object):
     """
     Transaction managers.
@@ -122,6 +117,18 @@ class TransactionManager(object):
         return TransactionManager(transactions)
 
 
+# Ignore name errors because these names are namedtuples.
+SupportRecord = namedtuple( # pylint: disable=C0103
+    'SupportRecord', ('items', 'support'))
+RelationRecord = namedtuple( # pylint: disable=C0103
+    'RelationRecord', SupportRecord._fields + ('ordered_statistics',))
+OrderedStatistic = namedtuple( # pylint: disable=C0103
+    'OrderedStatistic', ('items_base', 'items_add', 'confidence', 'lift',))
+
+
+################################################################################
+# Inner functions.
+################################################################################
 def create_next_candidates(prev_candidates, length):
     """
     Returns the apriori candidates as a list.
@@ -213,6 +220,9 @@ def gen_ordered_statistics(transaction_manager, record):
             frozenset(items_base), frozenset(items_add), confidence, lift)
 
 
+################################################################################
+# API function.
+################################################################################
 def apriori(transactions, **kwargs):
     """
     Executes Apriori algorithm and returns a RelationRecord generator.
@@ -252,6 +262,63 @@ def apriori(transactions, **kwargs):
         yield RelationRecord(
             support_record.items, support_record.support,
             filtered_ordered_statistics)
+
+
+################################################################################
+# Application functions.
+################################################################################
+def parse_args(argv):
+    """
+    Parse commandline arguments.
+
+    Arguments:
+        argv -- An argument list without the program name.
+    """
+    output_funcs = {
+        'json': dump_as_json,
+        'tsv': dump_as_two_item_tsv,
+    }
+    default_output_func_key = 'json'
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-v', '--version', action='version',
+        version='%(prog)s {0}'.format(__version__))
+    parser.add_argument(
+        'input', metavar='inpath', nargs='*',
+        help='Input transaction file (default: stdin).',
+        type=argparse.FileType('r'), default=[sys.stdin])
+    parser.add_argument(
+        '-o', '--output', metavar='outpath',
+        help='Output file (default: stdout).',
+        type=argparse.FileType('w'), default=sys.stdout)
+    parser.add_argument(
+        '-l', '--max-length', metavar='int',
+        help='Max length of relations (default: infinite).',
+        type=int, default=None)
+    parser.add_argument(
+        '-s', '--min-support', metavar='float',
+        help='Minimum support ratio (must be > 0, default: 0.1).',
+        type=float, default=0.1)
+    parser.add_argument(
+        '-c', '--min-confidence', metavar='float',
+        help='Minimum confidence (default: 0.5).',
+        type=float, default=0.5)
+    parser.add_argument(
+        '-d', '--delimiter', metavar='str',
+        help='Delimiter for items of transactions (default: tab).',
+        type=str, default='\t')
+    parser.add_argument(
+        '-f', '--out-format', metavar='str',
+        help='Output format ({0}; default: {1}).'.format(
+            ', '.join(output_funcs.keys()), default_output_func_key),
+        type=str, choices=output_funcs.keys(), default=default_output_func_key)
+    args = parser.parse_args(argv)
+    if args.min_support <= 0:
+        raise ValueError('min support must be > 0')
+
+    args.output_func = output_funcs[args.out_format]
+    return args
 
 
 def load_transactions(input_file, **kwargs):
@@ -315,62 +382,10 @@ def dump_as_two_item_tsv(record, output_file):
             os.linesep))
 
 
-def parse_args(argv):
-    """
-    Parse commandline arguments.
-
-    Arguments:
-        argv -- An argument list without the program name.
-    """
-    output_funcs = {
-        'json': dump_as_json,
-        'tsv': dump_as_two_item_tsv,
-    }
-    default_output_func_key = 'json'
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-v', '--version', action='version',
-        version='%(prog)s {0}'.format(__version__))
-    parser.add_argument(
-        'input', metavar='inpath', nargs='*',
-        help='Input transaction file (default: stdin).',
-        type=argparse.FileType('r'), default=[sys.stdin])
-    parser.add_argument(
-        '-o', '--output', metavar='outpath',
-        help='Output file (default: stdout).',
-        type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument(
-        '-l', '--max-length', metavar='int',
-        help='Max length of relations (default: infinite).',
-        type=int, default=None)
-    parser.add_argument(
-        '-s', '--min-support', metavar='float',
-        help='Minimum support ratio (must be > 0, default: 0.1).',
-        type=float, default=0.1)
-    parser.add_argument(
-        '-c', '--min-confidence', metavar='float',
-        help='Minimum confidence (default: 0.5).',
-        type=float, default=0.5)
-    parser.add_argument(
-        '-d', '--delimiter', metavar='str',
-        help='Delimiter for items of transactions (default: tab).',
-        type=str, default='\t')
-    parser.add_argument(
-        '-f', '--out-format', metavar='str',
-        help='Output format ({0}; default: {1}).'.format(
-            ', '.join(output_funcs.keys()), default_output_func_key),
-        type=str, choices=output_funcs.keys(), default=default_output_func_key)
-    args = parser.parse_args(argv)
-    if args.min_support <= 0:
-        raise ValueError('min support must be > 0')
-
-    args.output_func = output_funcs[args.out_format]
-    return args
-
-
 def main(**kwargs):
-    """ Executes Apriori algorithm and print its result. """
+    """
+    Executes Apriori algorithm and print its result.
+    """
     # For tests.
     _parse_args = kwargs.get('_parse_args', parse_args)
     _load_transactions = kwargs.get('_load_transactions', load_transactions)
