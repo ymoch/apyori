@@ -3,7 +3,6 @@ Tests for apyori.load_transactions.
 """
 
 # For Python 2 compatibility.
-# pylint: disable=duplicate-code
 try:
     from StringIO import StringIO
 except ImportError:
