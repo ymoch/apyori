@@ -8,6 +8,7 @@ import sys
 import csv
 import argparse
 import json
+import os
 from collections import namedtuple
 from itertools import combinations
 from itertools import chain
@@ -288,9 +289,10 @@ def dump_as_json(record, output_file):
 
     converted_record = record._replace(
         ordered_statistics=[x._asdict() for x in record.ordered_statistics])
-    output_file.write(
-        json.dumps(converted_record._asdict(), default=default_func))
-    output_file.write('\n')
+    json.dump(
+        converted_record._asdict(), output_file,
+        default=default_func, ensure_ascii=False)
+    output_file.write(os.linesep)
 
 
 def dump_as_two_item_tsv(record, output_file):
@@ -306,9 +308,10 @@ def dump_as_two_item_tsv(record, output_file):
             return
         if len(ordered_stats.items_add) != 1:
             return
-        output_file.write('{0}\t{1}\t{2:.8f}\t{3:.8f}\t{4:.8f}\n'.format(
+        output_file.write('{0}\t{1}\t{2:.8f}\t{3:.8f}\t{4:.8f}{5}'.format(
             list(ordered_stats.items_base)[0], list(ordered_stats.items_add)[0],
-            record.support, ordered_stats.confidence, ordered_stats.lift))
+            record.support, ordered_stats.confidence, ordered_stats.lift,
+            os.linesep))
 
 
 def parse_args(argv):
