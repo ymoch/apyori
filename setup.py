@@ -7,10 +7,10 @@ Setting up program for Apyori.
 import apyori
 import setuptools
 
-
 setuptools.setup(
     name='apyori',
     description='Simple Apriori algorithm Implementation.',
+    long_description=open('README.rst').read(),
     version=apyori.__version__,
     author=apyori.__author__,
     author_email=apyori.__author_email__,
@@ -22,7 +22,7 @@ setuptools.setup(
             'apyori-run = apyori:main',
         ],
     },
-    classifires=[
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
