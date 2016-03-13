@@ -8,6 +8,7 @@ try:
 except ImportError:
     from io import StringIO
 
+# Break to reduce the Pylint duplicate-code warnings.
 from nose.tools import eq_
 
 from apyori import RelationRecord

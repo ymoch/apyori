@@ -253,6 +253,23 @@ def apriori(transactions, **kwargs):
             filtered_ordered_statistics)
 
 
+def load_transactions(input_file, **kwargs):
+    """
+    Load transactions and returns a generator for transactions.
+
+    Arguments:
+        input_file -- An input file.
+
+    Keyword arguments:
+        delimiter -- The delimiter of the transaction.
+    """
+    delimiter = kwargs.get('delimiter', '\t')
+    for transaction in csv.reader(input_file, delimiter=delimiter):
+        if not transaction:
+            continue
+        yield transaction
+
+
 def dump_as_json(record, output_file):
     """
     Dump an relation record as a json value.
@@ -351,8 +368,8 @@ def parse_args(argv):
 def main():
     """ Main. """
     args = parse_args(sys.argv[1:])
-    transactions = list(
-        csv.reader(chain(*args.input), delimiter=args.delimiter))
+    transactions = load_transactions(
+        chain(*args.input), delimiter=args.delimiter)
     result = apriori(
         transactions,
         max_length=args.max_length,
