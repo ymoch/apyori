@@ -94,7 +94,7 @@ class TransactionManager(object):
         """
         Returns the initial candidates.
         """
-        return [frozenset([item]) for item in self.__items]
+        return [frozenset([item]) for item in self.items]
 
     @property
     def num_transaction(self):
@@ -108,7 +108,7 @@ class TransactionManager(object):
         """
         Returns the item list that the transaction is consisted of.
         """
-        return self.__items
+        return sorted(self.__items)
 
     @staticmethod
     def create(transactions):
@@ -130,10 +130,11 @@ def create_next_candidates(prev_candidates, length):
         length -- The lengths of the next candidates.
     """
     # Solve the items.
-    items = set()
+    item_set = set()
     for candidate in prev_candidates:
         for item in candidate:
-            items.add(item)
+            item_set.add(item)
+    items = sorted(item_set)
 
     def check_subsets(candidate):
         """
@@ -201,9 +202,8 @@ def gen_ordered_statistics(transaction_manager, record):
         record -- A support record as a SupportRecord instance.
     """
     items = record.items
-    combination_sets = [
-        frozenset(x) for x in combinations(items, len(items) - 1)]
-    for items_base in combination_sets:
+    for combination_set in combinations(sorted(items), len(items) - 1):
+        items_base = frozenset(combination_set)
         items_add = frozenset(items.difference(items_base))
         confidence = (
             record.support / transaction_manager.calc_support(items_base))

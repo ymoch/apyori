@@ -17,13 +17,12 @@ def test_2elem():
         frozenset(['C'])
     ]
 
-    # Convert into frozenset to ignore orders.
-    result = frozenset(create_next_candidates(test_data, 2))
-    eq_(result, frozenset([
+    result = create_next_candidates(test_data, 2)
+    eq_(result, [
         frozenset(['A', 'B']),
         frozenset(['A', 'C']),
         frozenset(['B', 'C']),
-    ]))
+    ])
 
 
 def test_3elem():
@@ -38,6 +37,5 @@ def test_3elem():
         frozenset(['D', 'F']),
     ]
 
-    # Convert into frozenset to ignore orders.
-    result = frozenset(create_next_candidates(test_data, 3))
-    eq_(result, frozenset([frozenset(['A', 'B', 'C'])]))
+    result = create_next_candidates(test_data, 3)
+    eq_(result, [frozenset(['A', 'B', 'C'])])
