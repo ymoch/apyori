@@ -214,7 +214,7 @@ def gen_ordered_statistics(transaction_manager, record):
 
 def apriori(transactions, **kwargs):
     """
-    Run Apriori algorithm.
+    Executes Apriori algorithm and returns a RelationRecord generator.
 
     Arguments:
         transactions -- A transaction iterable object
@@ -366,7 +366,7 @@ def parse_args(argv):
 
 
 def main():
-    """ Main. """
+    """ Executes Apriori algorithm and print its result. """
     args = parse_args(sys.argv[1:])
     transactions = load_transactions(
         chain(*args.input), delimiter=args.delimiter)
