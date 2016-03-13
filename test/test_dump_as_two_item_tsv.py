@@ -8,7 +8,6 @@ try:
 except ImportError:
     from io import StringIO
 
-# Break to reduce the Pylint duplicate-code warnings.
 from os import linesep
 from nose.tools import eq_
 

@@ -267,8 +267,9 @@ def load_transactions(input_file, **kwargs):
     delimiter = kwargs.get('delimiter', '\t')
     for transaction in csv.reader(input_file, delimiter=delimiter):
         if not transaction:
-            continue
-        yield transaction
+            yield ['']
+        else:
+            yield transaction
 
 
 def dump_as_json(record, output_file):
@@ -368,12 +369,17 @@ def parse_args(argv):
     return args
 
 
-def main():
+def main(**kwargs):
     """ Executes Apriori algorithm and print its result. """
-    args = parse_args(sys.argv[1:])
-    transactions = load_transactions(
+    # For tests.
+    _parse_args = kwargs.get('_parse_args', parse_args)
+    _load_transactions = kwargs.get('_load_transactions', load_transactions)
+    _apriori = kwargs.get('_apriori', apriori)
+
+    args = _parse_args(sys.argv[1:])
+    transactions = _load_transactions(
         chain(*args.input), delimiter=args.delimiter)
-    result = apriori(
+    result = _apriori(
         transactions,
         max_length=args.max_length,
         min_support=args.min_support,
