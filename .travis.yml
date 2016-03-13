@@ -13,6 +13,9 @@ script:
   - coverage run --source=apyori setup.py test
   # Code quality check.
   - pylint apyori.py test/*.py
+  # Integration test
+  - apyori-run data/integration_test_input_1.tsv > result.txt
+  - diff result.txt data/integration_test_output_1.txt
 after_success:
   - coveralls
 notifications:

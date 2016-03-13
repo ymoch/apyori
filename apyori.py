@@ -1,20 +1,22 @@
 #!/usr/bin/env python
 
 """
-Implementation of Apriori algorithm.
+a simple implementation of Apriori algorithm by Python.
 """
 
 import sys
+import csv
 import argparse
 import json
+import os
 from collections import namedtuple
 from itertools import combinations
 from itertools import chain
 
 
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 __author__ = 'ymoch'
-__author_email__ = 'ymoch@githib.com'
+__author_email__ = 'ymoch@github.com'
 
 
 # Ignore name errors because these names are namedtuples.
@@ -28,14 +30,16 @@ OrderedStatistic = namedtuple( # pylint: disable=C0103
 
 class TransactionManager(object):
     """
-    Transaction manager class.
+    Transaction managers.
     """
 
     def __init__(self, transactions):
         """
         Initialize.
 
-        @param  transactions    A transaction list.
+        Arguments:
+            transactions -- A transaction iterable object
+                            (eg. [['A', 'B'], ['B', 'C']]).
         """
         self.__num_transaction = 0
         self.__items = []
@@ -48,7 +52,8 @@ class TransactionManager(object):
         """
         Add a transaction.
 
-        @param  transaction A transaction.
+        Arguments:
+            transaction -- A transaction as an iterable object (eg. ['A', 'B']).
         """
         for item in transaction:
             if item not in self.__transaction_index_map:
@@ -60,6 +65,9 @@ class TransactionManager(object):
     def calc_support(self, items):
         """
         Returns a support for items.
+
+        Arguments:
+            items -- Items as an iterable object (eg. ['A', 'B']).
         """
         # Empty items is supported by all transactions.
         if not items:
@@ -74,18 +82,20 @@ class TransactionManager(object):
                 return 0.0
 
             if sum_indexes is None:
+                # Assign the indexes on the first time.
                 sum_indexes = indexes
             else:
+                # Calculate the intersection on not the first time.
                 sum_indexes = sum_indexes.intersection(indexes)
 
-        # Calculate the support.
+        # Calculate and return the support.
         return float(len(sum_indexes)) / self.__num_transaction
 
     def initial_candidates(self):
         """
         Returns the initial candidates.
         """
-        return [frozenset([item]) for item in self.__items]
+        return [frozenset([item]) for item in self.items]
 
     @property
     def num_transaction(self):
@@ -99,7 +109,7 @@ class TransactionManager(object):
         """
         Returns the item list that the transaction is consisted of.
         """
-        return self.__items
+        return sorted(self.__items)
 
     @staticmethod
     def create(transactions):
@@ -114,13 +124,18 @@ class TransactionManager(object):
 
 def create_next_candidates(prev_candidates, length):
     """
-    Returns the apriori candidates.
+    Returns the apriori candidates as a list.
+
+    Arguments:
+        prev_candidates -- Previous candidates as a list.
+        length -- The lengths of the next candidates.
     """
     # Solve the items.
-    items = set()
+    item_set = set()
     for candidate in prev_candidates:
         for item in candidate:
-            items.add(item)
+            item_set.add(item)
+    items = sorted(item_set)
 
     def check_subsets(candidate):
         """
@@ -143,14 +158,25 @@ def create_next_candidates(prev_candidates, length):
     return next_candidates
 
 
-def gen_support_records(
-        transaction_manager,
-        min_support,
-        max_length=None,
-        _generate_candidates_func=create_next_candidates):
+def gen_support_records(transaction_manager, min_support, **kwargs):
     """
     Returns a generator of support records with given transactions.
+
+    Arguments:
+        transaction_manager -- Transactions as a TransactionManager instance.
+        min_support -- A minimum support (float).
+
+    Keyword arguments:
+        max_length -- The maximum length of relations (integer).
     """
+    # Parse arguments.
+    max_length = kwargs.get('max_length')
+
+    # For testing.
+    _create_next_candidates = kwargs.get(
+        '_create_next_candidates', create_next_candidates)
+
+    # Process.
     candidates = transaction_manager.initial_candidates()
     length = 1
     while candidates:
@@ -165,17 +191,20 @@ def gen_support_records(
         length += 1
         if max_length and length > max_length:
             break
-        candidates = _generate_candidates_func(relations, length)
+        candidates = _create_next_candidates(relations, length)
 
 
 def gen_ordered_statistics(transaction_manager, record):
     """
-    Returns a generator of ordered statistics.
+    Returns a generator of ordered statistics as OrderedStatistic instances.
+
+    Arguments:
+        transaction_manager -- Transactions as a TransactionManager instance.
+        record -- A support record as a SupportRecord instance.
     """
     items = record.items
-    combination_sets = [
-        frozenset(x) for x in combinations(items, len(items) - 1)]
-    for items_base in combination_sets:
+    for combination_set in combinations(sorted(items), len(items) - 1):
+        items_base = frozenset(combination_set)
         items_add = frozenset(items.difference(items_base))
         confidence = (
             record.support / transaction_manager.calc_support(items_base))
@@ -186,15 +215,22 @@ def gen_ordered_statistics(transaction_manager, record):
 
 def apriori(transactions, **kwargs):
     """
-    Run Apriori algorithm.
+    Executes Apriori algorithm and returns a RelationRecord generator.
 
-    @param  transactions    A list of transactions.
-    @param  min_support     The minimum support of the relation (float).
-    @param  max_length      The maximum length of the relation (integer).
+    Arguments:
+        transactions -- A transaction iterable object
+                        (eg. [['A', 'B'], ['B', 'C']]).
+
+    Keyword arguments:
+        min_support -- The minimum support of the relation (float).
+        max_length -- The maximum length of the relation (integer).
     """
+    # Parse the arguments.
     min_support = kwargs.get('min_support', 0.1)
     max_length = kwargs.get('max_length', None)
     min_confidence = kwargs.get('min_confidence', 0.0)
+
+    # For testing.
     _gen_support_records = kwargs.get(
         '_gen_support_records', gen_support_records)
     _gen_ordered_statistics = kwargs.get(
@@ -203,7 +239,7 @@ def apriori(transactions, **kwargs):
     # Calculate supports.
     transaction_manager = TransactionManager.create(transactions)
     support_records = _gen_support_records(
-        transaction_manager, min_support, max_length)
+        transaction_manager, min_support, max_length=max_length)
 
     # Calculate ordered stats.
     for support_record in support_records:
@@ -218,12 +254,30 @@ def apriori(transactions, **kwargs):
             filtered_ordered_statistics)
 
 
+def load_transactions(input_file, **kwargs):
+    """
+    Load transactions and returns a generator for transactions.
+
+    Arguments:
+        input_file -- An input file.
+
+    Keyword arguments:
+        delimiter -- The delimiter of the transaction.
+    """
+    delimiter = kwargs.get('delimiter', '\t')
+    for transaction in csv.reader(input_file, delimiter=delimiter):
+        if not transaction:
+            continue
+        yield transaction
+
+
 def dump_as_json(record, output_file):
     """
     Dump an relation record as a json value.
 
-    @param  record      A record.
-    @param  output_file An output file.
+    Arguments:
+        record -- A RelationRecord instance to dump.
+        output_file -- A file to output.
     """
     def default_func(value):
         """
@@ -235,31 +289,37 @@ def dump_as_json(record, output_file):
 
     converted_record = record._replace(
         ordered_statistics=[x._asdict() for x in record.ordered_statistics])
-    output_file.write(
-        json.dumps(converted_record._asdict(), default=default_func))
-    output_file.write('\n')
+    json.dump(
+        converted_record._asdict(), output_file,
+        default=default_func, ensure_ascii=False)
+    output_file.write(os.linesep)
 
 
 def dump_as_two_item_tsv(record, output_file):
     """
     Dump a relation record as TSV only for 2 item relations.
 
-    @param  record      A record.
-    @param  output_file An output file.
+    Arguments:
+        record -- A RelationRecord instance to dump.
+        output_file -- A file to output.
     """
     for ordered_stats in record.ordered_statistics:
         if len(ordered_stats.items_base) != 1:
             return
         if len(ordered_stats.items_add) != 1:
             return
-        output_file.write('{0}\t{1}\t{2:.8f}\t{3:.8f}\t{4:.8f}\n'.format(
+        output_file.write('{0}\t{1}\t{2:.8f}\t{3:.8f}\t{4:.8f}{5}'.format(
             list(ordered_stats.items_base)[0], list(ordered_stats.items_add)[0],
-            record.support, ordered_stats.confidence, ordered_stats.lift))
+            record.support, ordered_stats.confidence, ordered_stats.lift,
+            os.linesep))
 
 
 def parse_args(argv):
     """
     Parse commandline arguments.
+
+    Arguments:
+        argv -- An argument list without the program name.
     """
     output_funcs = {
         'json': dump_as_json,
@@ -296,9 +356,10 @@ def parse_args(argv):
         help='Delimiter for items of transactions (default: tab).',
         type=str, default='\t')
     parser.add_argument(
-        '-f', '--out-format', help='Output format (default or tsv).',
-        metavar='str', type=str, choices=output_funcs.keys(),
-        default=default_output_func_key)
+        '-f', '--out-format', metavar='str',
+        help='Output format ({0}; default: {1}).'.format(
+            ', '.join(output_funcs.keys()), default_output_func_key),
+        type=str, choices=output_funcs.keys(), default=default_output_func_key)
     args = parser.parse_args(argv)
     if args.min_support <= 0:
         raise ValueError('min support must be > 0')
@@ -308,19 +369,15 @@ def parse_args(argv):
 
 
 def main():
-    """
-    Main.
-    """
+    """ Executes Apriori algorithm and print its result. """
     args = parse_args(sys.argv[1:])
-
-    transactions = [
-        line.strip().split(args.delimiter) for line in chain(*args.input)]
+    transactions = load_transactions(
+        chain(*args.input), delimiter=args.delimiter)
     result = apriori(
         transactions,
         max_length=args.max_length,
         min_support=args.min_support,
         min_confidence=args.min_confidence)
-
     for record in result:
         args.output_func(record, args.output)
 
