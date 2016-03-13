@@ -16,7 +16,7 @@ from itertools import chain
 
 # Meta informations.
 __version__ = '1.0.0'
-__author__ = 'ymoch'
+__author__ = 'Yu Mochizuki'
 
 
 ################################################################################
