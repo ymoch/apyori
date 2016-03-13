@@ -14,20 +14,14 @@ from itertools import combinations
 from itertools import chain
 
 
-__version__ = '0.9.1'
+# Meta informations.
+__version__ = '1.0.0'
 __author__ = 'ymoch'
-__author_email__ = 'ymoch@github.com'
 
 
-# Ignore name errors because these names are namedtuples.
-SupportRecord = namedtuple( # pylint: disable=C0103
-    'SupportRecord', ('items', 'support'))
-RelationRecord = namedtuple( # pylint: disable=C0103
-    'RelationRecord', SupportRecord._fields + ('ordered_statistics',))
-OrderedStatistic = namedtuple( # pylint: disable=C0103
-    'OrderedStatistic', ('items_base', 'items_add', 'confidence', 'lift',))
-
-
+################################################################################
+# Data structures.
+################################################################################
 class TransactionManager(object):
     """
     Transaction managers.
@@ -122,6 +116,18 @@ class TransactionManager(object):
         return TransactionManager(transactions)
 
 
+# Ignore name errors because these names are namedtuples.
+SupportRecord = namedtuple( # pylint: disable=C0103
+    'SupportRecord', ('items', 'support'))
+RelationRecord = namedtuple( # pylint: disable=C0103
+    'RelationRecord', SupportRecord._fields + ('ordered_statistics',))
+OrderedStatistic = namedtuple( # pylint: disable=C0103
+    'OrderedStatistic', ('items_base', 'items_add', 'confidence', 'lift',))
+
+
+################################################################################
+# Inner functions.
+################################################################################
 def create_next_candidates(prev_candidates, length):
     """
     Returns the apriori candidates as a list.
@@ -213,6 +219,9 @@ def gen_ordered_statistics(transaction_manager, record):
             frozenset(items_base), frozenset(items_add), confidence, lift)
 
 
+################################################################################
+# API function.
+################################################################################
 def apriori(transactions, **kwargs):
     """
     Executes Apriori algorithm and returns a RelationRecord generator.
@@ -254,66 +263,9 @@ def apriori(transactions, **kwargs):
             filtered_ordered_statistics)
 
 
-def load_transactions(input_file, **kwargs):
-    """
-    Load transactions and returns a generator for transactions.
-
-    Arguments:
-        input_file -- An input file.
-
-    Keyword arguments:
-        delimiter -- The delimiter of the transaction.
-    """
-    delimiter = kwargs.get('delimiter', '\t')
-    for transaction in csv.reader(input_file, delimiter=delimiter):
-        if not transaction:
-            continue
-        yield transaction
-
-
-def dump_as_json(record, output_file):
-    """
-    Dump an relation record as a json value.
-
-    Arguments:
-        record -- A RelationRecord instance to dump.
-        output_file -- A file to output.
-    """
-    def default_func(value):
-        """
-        Default conversion for JSON value.
-        """
-        if isinstance(value, frozenset):
-            return sorted(value)
-        raise TypeError(repr(value) + " is not JSON serializable")
-
-    converted_record = record._replace(
-        ordered_statistics=[x._asdict() for x in record.ordered_statistics])
-    json.dump(
-        converted_record._asdict(), output_file,
-        default=default_func, ensure_ascii=False)
-    output_file.write(os.linesep)
-
-
-def dump_as_two_item_tsv(record, output_file):
-    """
-    Dump a relation record as TSV only for 2 item relations.
-
-    Arguments:
-        record -- A RelationRecord instance to dump.
-        output_file -- A file to output.
-    """
-    for ordered_stats in record.ordered_statistics:
-        if len(ordered_stats.items_base) != 1:
-            return
-        if len(ordered_stats.items_add) != 1:
-            return
-        output_file.write('{0}\t{1}\t{2:.8f}\t{3:.8f}\t{4:.8f}{5}'.format(
-            list(ordered_stats.items_base)[0], list(ordered_stats.items_add)[0],
-            record.support, ordered_stats.confidence, ordered_stats.lift,
-            os.linesep))
-
-
+################################################################################
+# Application functions.
+################################################################################
 def parse_args(argv):
     """
     Parse commandline arguments.
@@ -368,12 +320,80 @@ def parse_args(argv):
     return args
 
 
-def main():
-    """ Executes Apriori algorithm and print its result. """
-    args = parse_args(sys.argv[1:])
-    transactions = load_transactions(
+def load_transactions(input_file, **kwargs):
+    """
+    Load transactions and returns a generator for transactions.
+
+    Arguments:
+        input_file -- An input file.
+
+    Keyword arguments:
+        delimiter -- The delimiter of the transaction.
+    """
+    delimiter = kwargs.get('delimiter', '\t')
+    for transaction in csv.reader(input_file, delimiter=delimiter):
+        if not transaction:
+            yield ['']
+        else:
+            yield transaction
+
+
+def dump_as_json(record, output_file):
+    """
+    Dump an relation record as a json value.
+
+    Arguments:
+        record -- A RelationRecord instance to dump.
+        output_file -- A file to output.
+    """
+    def default_func(value):
+        """
+        Default conversion for JSON value.
+        """
+        if isinstance(value, frozenset):
+            return sorted(value)
+        raise TypeError(repr(value) + " is not JSON serializable")
+
+    converted_record = record._replace(
+        ordered_statistics=[x._asdict() for x in record.ordered_statistics])
+    json.dump(
+        converted_record._asdict(), output_file,
+        default=default_func, ensure_ascii=False)
+    output_file.write(os.linesep)
+
+
+def dump_as_two_item_tsv(record, output_file):
+    """
+    Dump a relation record as TSV only for 2 item relations.
+
+    Arguments:
+        record -- A RelationRecord instance to dump.
+        output_file -- A file to output.
+    """
+    for ordered_stats in record.ordered_statistics:
+        if len(ordered_stats.items_base) != 1:
+            return
+        if len(ordered_stats.items_add) != 1:
+            return
+        output_file.write('{0}\t{1}\t{2:.8f}\t{3:.8f}\t{4:.8f}{5}'.format(
+            list(ordered_stats.items_base)[0], list(ordered_stats.items_add)[0],
+            record.support, ordered_stats.confidence, ordered_stats.lift,
+            os.linesep))
+
+
+def main(**kwargs):
+    """
+    Executes Apriori algorithm and print its result.
+    """
+    # For tests.
+    _parse_args = kwargs.get('_parse_args', parse_args)
+    _load_transactions = kwargs.get('_load_transactions', load_transactions)
+    _apriori = kwargs.get('_apriori', apriori)
+
+    args = _parse_args(sys.argv[1:])
+    transactions = _load_transactions(
         chain(*args.input), delimiter=args.delimiter)
-    result = apriori(
+    result = _apriori(
         transactions,
         max_length=args.max_length,
         min_support=args.min_support,
