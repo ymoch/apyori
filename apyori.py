@@ -267,8 +267,9 @@ def load_transactions(input_file, **kwargs):
     delimiter = kwargs.get('delimiter', '\t')
     for transaction in csv.reader(input_file, delimiter=delimiter):
         if not transaction:
-            continue
-        yield transaction
+            yield ['']
+        else:
+            yield transaction
 
 
 def dump_as_json(record, output_file):
