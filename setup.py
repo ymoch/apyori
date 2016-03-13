@@ -13,7 +13,6 @@ setuptools.setup(
     long_description=open('README.rst').read(),
     version=apyori.__version__,
     author=apyori.__author__,
-    author_email=apyori.__author_email__,
     py_modules=['apyori'],
     test_suite='nose.collector',
     tests_require=['nose', 'mock'],
@@ -23,7 +22,7 @@ setuptools.setup(
         ],
     },
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Intended Audience :: Information Technology',

@@ -15,9 +15,8 @@ from itertools import chain
 
 
 # Meta informations.
-__version__ = '0.9.1'
+__version__ = '1.0.0'
 __author__ = 'ymoch'
-__author_email__ = 'ymoch@github.com'
 
 
 ################################################################################
