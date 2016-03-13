@@ -9,6 +9,7 @@ except ImportError:
     from io import StringIO
 
 # Break to reduce the Pylint duplicate-code warnings.
+from os import linesep
 from nose.tools import eq_
 
 from apyori import RelationRecord
@@ -32,4 +33,4 @@ def test_normal():
 
     output_file.seek(0)
     result = output_file.read()
-    eq_(result, 'A\tB\t0.50000000\t0.80000000\t1.20000000\n')
+    eq_(result, 'A\tB\t0.50000000\t0.80000000\t1.20000000' + linesep)
