@@ -32,20 +32,16 @@ def test_normal():
     manager = TransactionManager(transactions)
 
     eq_(manager.num_transaction, len(transactions))
+    eq_(manager.items, ['beer', 'cheese', 'nuts'])
+    eq_(manager.initial_candidates(), [
+            frozenset(['beer']), frozenset(['cheese']), frozenset(['nuts'])])
+    eq_(manager.calc_support([]), 1.0)
     eq_(manager.calc_support(['beer']), 1.0)
     eq_(manager.calc_support(['nuts']), 0.5)
     eq_(manager.calc_support(['butter']), 0.0)
     eq_(manager.calc_support(['beer', 'nuts']), 0.5)
     eq_(manager.calc_support(['beer', 'nuts', 'cheese']), 0.0)
 
-    # Convert into frozenset to ignore orders.
-    eq_(frozenset(manager.items), frozenset(['beer', 'nuts', 'cheese']))
-    eq_(
-        frozenset(manager.initial_candidates()),
-        frozenset([
-            frozenset(['beer']), frozenset(['nuts']), frozenset(['cheese'])
-        ])
-    )
 
 def test_create():
     """
