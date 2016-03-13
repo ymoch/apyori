@@ -5,6 +5,7 @@ a simple implementation of Apriori algorithm by Python.
 """
 
 import sys
+import csv
 import argparse
 import json
 from collections import namedtuple
@@ -350,8 +351,8 @@ def parse_args(argv):
 def main():
     """ Main. """
     args = parse_args(sys.argv[1:])
-    transactions = [
-        line.strip().split(args.delimiter) for line in chain(*args.input)]
+    transactions = list(
+        csv.reader(chain(*args.input), delimiter=args.delimiter))
     result = apriori(
         transactions,
         max_length=args.max_length,
