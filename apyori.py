@@ -14,9 +14,9 @@ from itertools import combinations
 from itertools import chain
 
 
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 __author__ = 'ymoch'
-__author_email__ = 'ymoch@githib.com'
+__author_email__ = 'ymoch@github.com'
 
 
 # Ignore name errors because these names are namedtuples.
