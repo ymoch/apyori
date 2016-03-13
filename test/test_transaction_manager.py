@@ -34,7 +34,7 @@ def test_normal():
     eq_(manager.num_transaction, len(transactions))
     eq_(manager.items, ['beer', 'cheese', 'nuts'])
     eq_(manager.initial_candidates(), [
-            frozenset(['beer']), frozenset(['cheese']), frozenset(['nuts'])])
+        frozenset(['beer']), frozenset(['cheese']), frozenset(['nuts'])])
     eq_(manager.calc_support([]), 1.0)
     eq_(manager.calc_support(['beer']), 1.0)
     eq_(manager.calc_support(['nuts']), 0.5)
