@@ -13,6 +13,8 @@ setuptools.setup(
     long_description=open('README.rst').read(),
     version=apyori.__version__,
     author=apyori.__author__,
+    author_email=apyori.__author_email__,
+    url='https://github.com/ymoch/apyori',
     py_modules=['apyori'],
     test_suite='nose.collector',
     tests_require=['nose', 'mock'],
