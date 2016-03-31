@@ -15,7 +15,7 @@ from itertools import chain
 
 
 # Meta informations.
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 __author__ = 'Yu Mochizuki'
 __author_email__ = 'ymoch.dev@gmail.com'
 
@@ -67,6 +67,10 @@ class TransactionManager(object):
         # Empty items is supported by all transactions.
         if not items:
             return 1.0
+
+        # Empty transactions supports no items.
+        if not self.num_transaction:
+            return 0.0
 
         # Create the transaction index intersection.
         sum_indexes = None
@@ -220,6 +224,28 @@ def gen_ordered_statistics(transaction_manager, record):
             frozenset(items_base), frozenset(items_add), confidence, lift)
 
 
+def filter_ordered_statistics(ordered_statistics, **kwargs):
+    """
+    Filter OrderedStatistic objects.
+
+    Arguments:
+        ordered_statistics -- A OrderedStatistic iterable object.
+
+    Keyword arguments:
+        min_confidence -- The minimum confidence of relations (float).
+        min_lift -- The minimum lift of relations (float).
+    """
+    min_confidence = kwargs.get('min_confidence', 0.0)
+    min_lift = kwargs.get('min_lift', 0.0)
+
+    for ordered_statistic in ordered_statistics:
+        if ordered_statistic.confidence < min_confidence:
+            continue
+        if ordered_statistic.lift < min_lift:
+            continue
+        yield ordered_statistic
+
+
 ################################################################################
 # API function.
 ################################################################################
@@ -232,19 +258,28 @@ def apriori(transactions, **kwargs):
                         (eg. [['A', 'B'], ['B', 'C']]).
 
     Keyword arguments:
-        min_support -- The minimum support of the relation (float).
+        min_support -- The minimum support of relations (float).
+        min_confidence -- The minimum confidence of relations (float).
+        min_lift -- The minimum lift of relations (float).
         max_length -- The maximum length of the relation (integer).
     """
     # Parse the arguments.
     min_support = kwargs.get('min_support', 0.1)
-    max_length = kwargs.get('max_length', None)
     min_confidence = kwargs.get('min_confidence', 0.0)
+    min_lift = kwargs.get('min_lift', 0.0)
+    max_length = kwargs.get('max_length', None)
+
+    # Check arguments.
+    if min_support <= 0:
+        raise ValueError('minimum support must be > 0')
 
     # For testing.
     _gen_support_records = kwargs.get(
         '_gen_support_records', gen_support_records)
     _gen_ordered_statistics = kwargs.get(
         '_gen_ordered_statistics', gen_ordered_statistics)
+    _filter_ordered_statistics = kwargs.get(
+        '_filter_ordered_statistics', filter_ordered_statistics)
 
     # Calculate supports.
     transaction_manager = TransactionManager.create(transactions)
@@ -253,15 +288,17 @@ def apriori(transactions, **kwargs):
 
     # Calculate ordered stats.
     for support_record in support_records:
-        ordered_statistics = _gen_ordered_statistics(
-            transaction_manager, support_record)
-        filtered_ordered_statistics = [
-            x for x in ordered_statistics if x.confidence >= min_confidence]
-        if not filtered_ordered_statistics:
+        ordered_statistics = list(
+            _filter_ordered_statistics(
+                _gen_ordered_statistics(transaction_manager, support_record),
+                min_confidence=min_confidence,
+                min_lift=min_lift,
+            )
+        )
+        if not ordered_statistics:
             continue
         yield RelationRecord(
-            support_record.items, support_record.support,
-            filtered_ordered_statistics)
+            support_record.items, support_record.support, ordered_statistics)
 
 
 ################################################################################
@@ -305,6 +342,10 @@ def parse_args(argv):
         help='Minimum confidence (default: 0.5).',
         type=float, default=0.5)
     parser.add_argument(
+        '-t', '--min-lift', metavar='float',
+        help='Minimum lift (default: 0.0).',
+        type=float, default=0.0)
+    parser.add_argument(
         '-d', '--delimiter', metavar='str',
         help='Delimiter for items of transactions (default: tab).',
         type=str, default='\t')
@@ -314,8 +355,6 @@ def parse_args(argv):
             ', '.join(output_funcs.keys()), default_output_func_key),
         type=str, choices=output_funcs.keys(), default=default_output_func_key)
     args = parser.parse_args(argv)
-    if args.min_support <= 0:
-        raise ValueError('min support must be > 0')
 
     args.output_func = output_funcs[args.out_format]
     return args
@@ -373,9 +412,9 @@ def dump_as_two_item_tsv(record, output_file):
     """
     for ordered_stats in record.ordered_statistics:
         if len(ordered_stats.items_base) != 1:
-            return
+            continue
         if len(ordered_stats.items_add) != 1:
-            return
+            continue
         output_file.write('{0}\t{1}\t{2:.8f}\t{3:.8f}\t{4:.8f}{5}'.format(
             list(ordered_stats.items_base)[0], list(ordered_stats.items_add)[0],
             record.support, ordered_stats.confidence, ordered_stats.lift,
