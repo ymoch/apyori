@@ -68,6 +68,10 @@ class TransactionManager(object):
         if not items:
             return 1.0
 
+        # Empty transactions supports no items.
+        if not self.num_transaction:
+            return 0.0
+
         # Create the transaction index intersection.
         sum_indexes = None
         for item in items:
@@ -265,6 +269,10 @@ def apriori(transactions, **kwargs):
     min_lift = kwargs.get('min_lift', 0.0)
     max_length = kwargs.get('max_length', None)
 
+    # Check arguments.
+    if min_support <= 0:
+        raise ValueError('minimum support must be > 0')
+
     # For testing.
     _gen_support_records = kwargs.get(
         '_gen_support_records', gen_support_records)
@@ -347,8 +355,6 @@ def parse_args(argv):
             ', '.join(output_funcs.keys()), default_output_func_key),
         type=str, choices=output_funcs.keys(), default=default_output_func_key)
     args = parser.parse_args(argv)
-    if args.min_support <= 0:
-        raise ValueError('min support must be > 0')
 
     args.output_func = output_funcs[args.out_format]
     return args
@@ -406,9 +412,9 @@ def dump_as_two_item_tsv(record, output_file):
     """
     for ordered_stats in record.ordered_statistics:
         if len(ordered_stats.items_base) != 1:
-            return
+            continue
         if len(ordered_stats.items_add) != 1:
-            return
+            continue
         output_file.write('{0}\t{1}\t{2:.8f}\t{3:.8f}\t{4:.8f}{5}'.format(
             list(ordered_stats.items_base)[0], list(ordered_stats.items_add)[0],
             record.support, ordered_stats.confidence, ordered_stats.lift,

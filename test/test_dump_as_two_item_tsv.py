@@ -22,9 +22,9 @@ def test_normal():
     """
     test_data = RelationRecord(
         frozenset(['A', 'B']), 0.5, [
-            OrderedStatistic(frozenset(['A']), frozenset(['B']), 0.8, 1.2),
             OrderedStatistic(frozenset(), frozenset(['B']), 0.8, 1.2),
             OrderedStatistic(frozenset(['A']), frozenset(), 0.8, 1.2),
+            OrderedStatistic(frozenset(['A']), frozenset(['B']), 0.8, 1.2),
         ]
     )
     output_file = StringIO()

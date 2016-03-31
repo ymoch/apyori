@@ -3,6 +3,8 @@ Tests for apyori.apriori.
 """
 
 from nose.tools import eq_
+from nose.tools import raises
+
 from mock import Mock
 
 from apyori import TransactionManager
@@ -114,3 +116,12 @@ def test_normal():
     eq_(result, [RelationRecord(
         support_record.items, support_record.support, [ordered_statistic1]
     )])
+
+
+@raises(ValueError)
+def test_invalid_support():
+    """
+    An invalid support.
+    """
+    transaction_manager = Mock(spec=TransactionManager)
+    list(apriori(transaction_manager, min_support=0.0))
