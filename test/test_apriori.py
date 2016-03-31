@@ -17,19 +17,53 @@ def test_empty():
     Test for empty data.
     """
     transaction_manager = Mock(spec=TransactionManager)
+    dummy_return = OrderedStatistic(
+        frozenset(['A']), frozenset(['B']), 0.1, 0.7)
     def gen_support_records(*args, **kwargs): # pylint: disable=unused-argument
         """ Mock for apyori.gen_support_records. """
         return iter([])
 
     def gen_ordered_statistics(*_):
         """ Mock for apyori.gen_ordered_statistics. """
-        yield OrderedStatistic(
-            frozenset(['A']), frozenset(['B']), 0.1, 0.7)
+        yield dummy_return
+
+    def filter_ordered_statistics(*_):
+        """ Mock for apyori.gen_ordered_statistics. """
+        yield dummy_return
 
     result = list(apriori(
         transaction_manager,
         _gen_support_records=gen_support_records,
         _gen_ordered_statistics=gen_ordered_statistics,
+        _filter_ordered_statistics=filter_ordered_statistics,
+    ))
+    eq_(result, [])
+
+
+def test_filtered():
+    """
+    Test for filtered data.
+    """
+    transaction_manager = Mock(spec=TransactionManager)
+    dummy_return = OrderedStatistic(
+        frozenset(['A']), frozenset(['B']), 0.1, 0.7)
+    def gen_support_records(*args, **kwargs): # pylint: disable=unused-argument
+        """ Mock for apyori.gen_support_records. """
+        yield dummy_return
+
+    def gen_ordered_statistics(*_):
+        """ Mock for apyori.gen_ordered_statistics. """
+        yield dummy_return
+
+    def filter_ordered_statistics(*args, **kwargs): # pylint: disable=unused-argument
+        """ Mock for apyori.gen_ordered_statistics. """
+        return iter([])
+
+    result = list(apriori(
+        transaction_manager,
+        _gen_support_records=gen_support_records,
+        _gen_ordered_statistics=gen_ordered_statistics,
+        _filter_ordered_statistics=filter_ordered_statistics,
     ))
     eq_(result, [])
 
@@ -40,6 +74,8 @@ def test_normal():
     """
     transaction_manager = Mock(spec=TransactionManager)
     min_support = 0.1
+    min_confidence = 0.1
+    min_lift = 0.5
     max_length = 2
     support_record = SupportRecord(frozenset(['A', 'B']), 0.5)
     ordered_statistic1 = OrderedStatistic(
@@ -58,26 +94,23 @@ def test_normal():
         yield ordered_statistic1
         yield ordered_statistic2
 
-    # Will not create any records because of confidence.
-    result = list(apriori(
-        transaction_manager,
-        min_support=min_support,
-        min_confidence=0.4,
-        max_length=max_length,
-        _gen_support_records=gen_support_records,
-        _gen_ordered_statistics=gen_ordered_statistics,
-    ))
-    eq_(result, [])
+    def filter_ordered_statistics(*args, **kwargs):
+        """ Mock for apyori.gen_ordered_statistics. """
+        eq_(kwargs['min_confidence'], min_confidence)
+        eq_(kwargs['min_lift'], min_lift)
+        eq_(len(list(args[0])), 2)
+        yield ordered_statistic1
 
-    # Will create a record.
     result = list(apriori(
         transaction_manager,
         min_support=min_support,
-        min_confidence=0.3,
+        min_confidence=min_confidence,
+        min_lift=min_lift,
         max_length=max_length,
         _gen_support_records=gen_support_records,
         _gen_ordered_statistics=gen_ordered_statistics,
+        _filter_ordered_statistics=filter_ordered_statistics,
     ))
     eq_(result, [RelationRecord(
-        support_record.items, support_record.support, [ordered_statistic2]
+        support_record.items, support_record.support, [ordered_statistic1]
     )])
