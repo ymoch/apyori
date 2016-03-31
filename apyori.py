@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# pylint: disable=W0141
 
 """
 a simple implementation of Apriori algorithm by Python.
@@ -220,6 +221,28 @@ def gen_ordered_statistics(transaction_manager, record):
             frozenset(items_base), frozenset(items_add), confidence, lift)
 
 
+def filter_ordered_statistics(ordered_statistics, **kwargs):
+    """
+    Filter OrderedStatistic objects.
+
+    Arguments:
+        ordered_statistics -- A OrderedStatistic iterable object.
+
+    Keyword arguments:
+        min_confidence -- The minimum confidence of relations (float).
+        min_lift -- The minimum lift of relations (float).
+    """
+    min_confidence = kwargs.get('min_confidence', 0.0)
+    min_lift = kwargs.get('min_lift', 0.0)
+
+    for ordered_statistic in ordered_statistics:
+        if ordered_statistic.confidence < min_confidence:
+            continue
+        if ordered_statistic.lift < min_lift:
+            continue
+        yield ordered_statistic
+
+
 ################################################################################
 # API function.
 ################################################################################
@@ -232,19 +255,24 @@ def apriori(transactions, **kwargs):
                         (eg. [['A', 'B'], ['B', 'C']]).
 
     Keyword arguments:
-        min_support -- The minimum support of the relation (float).
+        min_support -- The minimum support of relations (float).
+        min_confidence -- The minimum confidence of relations (float).
+        min_lift -- The minimum lift of relations (float).
         max_length -- The maximum length of the relation (integer).
     """
     # Parse the arguments.
     min_support = kwargs.get('min_support', 0.1)
-    max_length = kwargs.get('max_length', None)
     min_confidence = kwargs.get('min_confidence', 0.0)
+    min_lift = kwargs.get('min_lift', 0.0)
+    max_length = kwargs.get('max_length', None)
 
     # For testing.
     _gen_support_records = kwargs.get(
         '_gen_support_records', gen_support_records)
     _gen_ordered_statistics = kwargs.get(
         '_gen_ordered_statistics', gen_ordered_statistics)
+    _filter_ordered_statistics = kwargs.get(
+        '_filter_ordered_statistics', filter_ordered_statistics)
 
     # Calculate supports.
     transaction_manager = TransactionManager.create(transactions)
@@ -253,15 +281,17 @@ def apriori(transactions, **kwargs):
 
     # Calculate ordered stats.
     for support_record in support_records:
-        ordered_statistics = _gen_ordered_statistics(
-            transaction_manager, support_record)
-        filtered_ordered_statistics = [
-            x for x in ordered_statistics if x.confidence >= min_confidence]
-        if not filtered_ordered_statistics:
+        ordered_statistics = list(
+            _filter_ordered_statistics(
+                _gen_ordered_statistics(transaction_manager, support_record),
+                min_confidence=min_confidence,
+                min_lift=min_lift,
+            )
+        )
+        if not ordered_statistics:
             continue
         yield RelationRecord(
-            support_record.items, support_record.support,
-            filtered_ordered_statistics)
+            support_record.items, support_record.support, ordered_statistics)
 
 
 ################################################################################
@@ -304,6 +334,10 @@ def parse_args(argv):
         '-c', '--min-confidence', metavar='float',
         help='Minimum confidence (default: 0.5).',
         type=float, default=0.5)
+    parser.add_argument(
+        '-t', '--min-lift', metavar='float',
+        help='Minimum lift (default: 0.0).',
+        type=float, default=0.0)
     parser.add_argument(
         '-d', '--delimiter', metavar='str',
         help='Delimiter for items of transactions (default: tab).',
