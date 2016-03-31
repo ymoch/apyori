@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# pylint: disable=W0141
 
 """
 a simple implementation of Apriori algorithm by Python.
