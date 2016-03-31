@@ -40,6 +40,34 @@ def test_empty():
     eq_(result, [])
 
 
+def test_filtered():
+    """
+    Test for filtered data.
+    """
+    transaction_manager = Mock(spec=TransactionManager)
+    dummy_return = OrderedStatistic(
+        frozenset(['A']), frozenset(['B']), 0.1, 0.7)
+    def gen_support_records(*args, **kwargs): # pylint: disable=unused-argument
+        """ Mock for apyori.gen_support_records. """
+        yield dummy_return
+
+    def gen_ordered_statistics(*_):
+        """ Mock for apyori.gen_ordered_statistics. """
+        yield dummy_return
+
+    def filter_ordered_statistics(*args, **kwargs): # pylint: disable=unused-argument
+        """ Mock for apyori.gen_ordered_statistics. """
+        return iter([])
+
+    result = list(apriori(
+        transaction_manager,
+        _gen_support_records=gen_support_records,
+        _gen_ordered_statistics=gen_ordered_statistics,
+        _filter_ordered_statistics=filter_ordered_statistics,
+    ))
+    eq_(result, [])
+
+
 def test_normal():
     """
     Test for normal data.
