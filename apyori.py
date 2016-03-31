@@ -406,9 +406,9 @@ def dump_as_two_item_tsv(record, output_file):
     """
     for ordered_stats in record.ordered_statistics:
         if len(ordered_stats.items_base) != 1:
-            return
+            continue
         if len(ordered_stats.items_add) != 1:
-            return
+            continue
         output_file.write('{0}\t{1}\t{2:.8f}\t{3:.8f}\t{4:.8f}{5}'.format(
             list(ordered_stats.items_base)[0], list(ordered_stats.items_add)[0],
             record.support, ordered_stats.confidence, ordered_stats.lift,
