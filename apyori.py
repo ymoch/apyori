@@ -160,7 +160,8 @@ def create_next_candidates(prev_candidates, length):
     # in the previous candidates.
     next_candidates = [
         candidate for candidate in tmp_next_candidates
-        if all(True if frozenset(x) in prev_candidates else False
+        if all(
+            True if frozenset(x) in prev_candidates else False
             for x in combinations(candidate, length - 1))
     ]
     return next_candidates
