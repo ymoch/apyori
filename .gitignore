@@ -64,3 +64,4 @@ target/
 # User-specific files
 .DS_Store
 .python-version
+.venv
