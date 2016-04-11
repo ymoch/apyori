@@ -15,7 +15,7 @@ from itertools import chain
 
 
 # Meta informations.
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 __author__ = 'Yu Mochizuki'
 __author_email__ = 'ymoch.dev@gmail.com'
 
@@ -148,24 +148,22 @@ def create_next_candidates(prev_candidates, length):
             item_set.add(item)
     items = sorted(item_set)
 
-    def check_subsets(candidate):
-        """
-        Check if the subsets of a candidate is present
-        in the previous candidates.
-        """
-        candidate_subsets = [
-            frozenset(x) for x in combinations(candidate, length - 1)]
-        for candidate_subset in candidate_subsets:
-            if candidate_subset not in prev_candidates:
-                return False
-        return True
+    # Create the temporary candidates. These will be filtered below.
+    tmp_next_candidates = (frozenset(x) for x in combinations(items, length))
 
-    # Create candidates.
-    next_candidates = []
-    for candidate in [frozenset(x) for x in combinations(items, length)]:
-        if length > 2 and not check_subsets(candidate):
-            continue
-        next_candidates.append(candidate)
+    # Return all the candidates if the length of the next candidates is 2
+    # because their subsets are the same as items.
+    if length < 3:
+        return list(tmp_next_candidates)
+
+    # Filter candidates that all of their subsets are
+    # in the previous candidates.
+    next_candidates = [
+        candidate for candidate in tmp_next_candidates
+        if all(
+            True if frozenset(x) in prev_candidates else False
+            for x in combinations(candidate, length - 1))
+    ]
     return next_candidates
 
 
@@ -372,10 +370,7 @@ def load_transactions(input_file, **kwargs):
     """
     delimiter = kwargs.get('delimiter', '\t')
     for transaction in csv.reader(input_file, delimiter=delimiter):
-        if not transaction:
-            yield ['']
-        else:
-            yield transaction
+        yield transaction if transaction else ['']
 
 
 def dump_as_json(record, output_file):
