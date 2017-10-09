@@ -369,8 +369,9 @@ def load_transactions(input_file, **kwargs):
         delimiter -- The delimiter of the transaction.
     """
     delimiter = kwargs.get('delimiter', '\t')
-    for transaction in csv.reader(input_file, delimiter=delimiter):
-        yield transaction if transaction else ['']
+    with open(input_file, newline='') as f:
+        for transaction in csv.reader(f, delimiter=delimiter):
+            yield transaction if transaction else ['']
 
 
 def dump_as_json(record, output_file):
