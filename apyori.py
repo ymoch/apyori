@@ -15,7 +15,7 @@ from itertools import chain
 
 
 # Meta informations.
-__version__ = '1.1.1'
+__version__ = '1.1.2'
 __author__ = 'Yu Mochizuki'
 __author_email__ = 'ymoch.dev@gmail.com'
 
@@ -142,11 +142,7 @@ def create_next_candidates(prev_candidates, length):
         length -- The lengths of the next candidates.
     """
     # Solve the items.
-    item_set = set()
-    for candidate in prev_candidates:
-        for item in candidate:
-            item_set.add(item)
-    items = sorted(item_set)
+    items = sorted(frozenset(chain.from_iterable(prev_candidates)))
 
     # Create the temporary candidates. These will be filtered below.
     tmp_next_candidates = (frozenset(x) for x in combinations(items, length))
@@ -161,7 +157,7 @@ def create_next_candidates(prev_candidates, length):
     next_candidates = [
         candidate for candidate in tmp_next_candidates
         if all(
-            True if frozenset(x) in prev_candidates else False
+            frozenset(x) in prev_candidates
             for x in combinations(candidate, length - 1))
     ]
     return next_candidates
@@ -212,14 +208,16 @@ def gen_ordered_statistics(transaction_manager, record):
         record -- A support record as a SupportRecord instance.
     """
     items = record.items
-    for combination_set in combinations(sorted(items), len(items) - 1):
-        items_base = frozenset(combination_set)
-        items_add = frozenset(items.difference(items_base))
-        confidence = (
-            record.support / transaction_manager.calc_support(items_base))
-        lift = confidence / transaction_manager.calc_support(items_add)
-        yield OrderedStatistic(
-            frozenset(items_base), frozenset(items_add), confidence, lift)
+    sorted_items = sorted(items)
+    for base_length in range(len(items)):
+        for combination_set in combinations(sorted_items, base_length):
+            items_base = frozenset(combination_set)
+            items_add = frozenset(items.difference(items_base))
+            confidence = (
+                record.support / transaction_manager.calc_support(items_base))
+            lift = confidence / transaction_manager.calc_support(items_add)
+            yield OrderedStatistic(
+                frozenset(items_base), frozenset(items_add), confidence, lift)
 
 
 def filter_ordered_statistics(ordered_statistics, **kwargs):
