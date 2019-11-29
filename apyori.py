@@ -142,11 +142,7 @@ def create_next_candidates(prev_candidates, length):
         length -- The lengths of the next candidates.
     """
     # Solve the items.
-    item_set = set()
-    for candidate in prev_candidates:
-        for item in candidate:
-            item_set.add(item)
-    items = sorted(item_set)
+    items = sorted(frozenset(chain.from_iterable(prev_candidates)))
 
     # Create the temporary candidates. These will be filtered below.
     tmp_next_candidates = (frozenset(x) for x in combinations(items, length))
@@ -161,7 +157,7 @@ def create_next_candidates(prev_candidates, length):
     next_candidates = [
         candidate for candidate in tmp_next_candidates
         if all(
-            True if frozenset(x) in prev_candidates else False
+            frozenset(x) in prev_candidates
             for x in combinations(candidate, length - 1))
     ]
     return next_candidates
