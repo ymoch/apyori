@@ -260,6 +260,9 @@ def apriori(transactions, **kwargs):
         max_length -- The maximum length of the relation (integer).
     """
     # Parse the arguments.
+    for k in kwargs.keys():
+        assert k in ['min_support', 'min_confidence', 'min_lift', 'max_length', '_gen_support_records',
+                     '_gen_ordered_statistics', '_filter_ordered_statistics'], "%s is not a valid key" % k
     min_support = kwargs.get('min_support', 0.1)
     min_confidence = kwargs.get('min_confidence', 0.0)
     min_lift = kwargs.get('min_lift', 0.0)
