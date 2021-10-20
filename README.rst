@@ -30,6 +30,7 @@ Installation
 
 Choose one from the following.
 
+- Install with pip :code:`pip install apyori`.
 - Put *apyori.py* into your project.
 - Run :code:`python setup.py install`.
 
